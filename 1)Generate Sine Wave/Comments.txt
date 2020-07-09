@@ -1,0 +1,47 @@
+- "Options" block is used to set global parameters.
+	ID : name of generated Python file.
+	Title : Title of main GUI window, or name of Hierarchical block.	
+	Window Size : GRC canvas size
+	Generate Options : Type of code to generate 
+		WX GUI : GUI app using WX toolkit(use WX GUI blocks)
+		QT GUI : GUI app using QT toolkit
+		No GUI : Command-line app without GUI(text-based, run in a console)
+			Run Options -> Run to Completion : Will automatically exit if/when done
+				       Prompt for Exit : Pressing ENTER will exit.
+		Hier Block : Create a Hierarchical block that will appear in the block list(a reuseable component ,not an app- use Pad Source/Sink Blocks to expose ports, and Parameters blocks to expose configuration variables.) 
+	Max Number of Output : Limit the number of samples output from each iteration of every block's work function.
+	Realtime Scheduling : If code is run as 'root'(e.g. with 'sudo') ask OS kernel to prioritise this process.
+
+- "Variables" contains an arbitrary Python expression. It can referred to another block by its "ID". 
+	Value : arbitrary Python expression(e.g. 32000 Integer, 32e6 float-point number, int(32e6))
+
+- "WX GUI Slider"
+
+- "Signal Source" synthesises wave.
+	Output Type : Type of sample.
+	Sample Rate : Any processing block's 'Sample Rate' parameter is used for DSP calculation, not for controlling the rate at which samples are produced.
+		      This is distinct from a hardware(or Throttle) block where it is used to control sample flow.
+
+- "Throttle"	
+- "WX GUI Scope Sink" 
+	Sample Rate : This is purely for generating the correct step sizes on the drawn X-axis.
+	V Scale 
+	V Offset : Entering any value will set it to a fixed scale/offset in that dimension. 
+	T Scale 
+	Num Inputs : Plot multiple signals(they may not be synchronised when drawn.)
+
+- Sample Rate (DSP)
+  * If calculating a sine wave where a given frequency in Hz is desired, we actually need to know the sample rate too.
+  * This is because the mathematical representation requires both values to calculate the individual sample amplitude at any specific point in time.
+  * The actual sample rate value used can be anything.
+  * It just so happens you'll usually use the same value as in the rest of your flowgraph so that everything will be consistent.(Operate in the same sample rate domain.)
+  * Think of it as being used to calculate the discrete step size from one sample to the next within a DSP operation.
+  * If there is no rate control, hardware clock or throttling mechanism, the samples will be generated, pass through the flowgraph and be consumed as fast as possible.
+  * This is desirable if you want to perform some fixed DSP on stored data as quickly as possible.
+  * Only a block that represents some underlying hardware with its own clock(e.g. USRP), or the Throttle Block, will use 'Sample Rate' to set that hardware clock, and therefore have the effect of applying rate control to the samples in the flowgraph.
+  * The Throttle Block, or a hardware Sink Block, will apply 'back pressure' to the upstream blocks.
+  * The rate of work of the upstream blocks will be limited by the throttling effect of this rate-controlling block.
+  * A hardware Source block will produce samples at a fixed rate(relative to the wall clock).
+  ** Otherwise you need to be very careful with multiple, unsynchronised clock sources: they will eventually go out of sync and cause overflows/underruns as their production/consumption rates will differ.
+  [References: Ettus Research]
+  
