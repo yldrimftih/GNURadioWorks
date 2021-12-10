@@ -6,7 +6,7 @@
 #
 # GNU Radio Python Flow Graph
 # Title: FM Receiver
-# GNU Radio version: 3.8.1.0
+# GNU Radio version: v3.8.2.0-57-gd71cd177
 
 from distutils.version import StrictVersion
 
@@ -37,6 +37,7 @@ from gnuradio import eng_notation
 from gnuradio.qtgui import Range, RangeWidget
 import osmosdr
 import time
+
 from gnuradio import qtgui
 
 class fm_receiver(gr.top_block, Qt.QWidget):
@@ -76,7 +77,7 @@ class fm_receiver(gr.top_block, Qt.QWidget):
         # Variables
         ##################################################
         self.volume = volume = 5e-3
-        self.tuning = tuning = 1062e5
+        self.tuning = tuning = 1017e5
         self.samp_rate = samp_rate = 2e6
         self.down_rate = down_rate = 250e3
 
@@ -86,20 +87,9 @@ class fm_receiver(gr.top_block, Qt.QWidget):
         self._volume_range = Range(0, 1, 1e-3, 5e-3, 200)
         self._volume_win = RangeWidget(self._volume_range, self.set_volume, 'Volume', "counter_slider", float)
         self.top_grid_layout.addWidget(self._volume_win)
-        self._tuning_range = Range(88e6, 108e6, 1, 1062e5, 200)
+        self._tuning_range = Range(88e6, 108e6, 1, 1017e5, 200)
         self._tuning_win = RangeWidget(self._tuning_range, self.set_tuning, 'Tuning', "counter_slider", float)
         self.top_grid_layout.addWidget(self._tuning_win)
-        self.rtlsdr_source_0 = osmosdr.source(
-            args="numchan=" + str(1) + " " + ''
-        )
-        self.rtlsdr_source_0.set_sample_rate(samp_rate)
-        self.rtlsdr_source_0.set_center_freq(tuning, 0)
-        self.rtlsdr_source_0.set_freq_corr(0, 0)
-        self.rtlsdr_source_0.set_gain(23, 0)
-        self.rtlsdr_source_0.set_if_gain(20, 0)
-        self.rtlsdr_source_0.set_bb_gain(20, 0)
-        self.rtlsdr_source_0.set_antenna('', 0)
-        self.rtlsdr_source_0.set_bandwidth(0, 0)
         self.rational_resampler_xxx_0 = filter.rational_resampler_fff(
                 interpolation=24,
                 decimation=250,
@@ -138,6 +128,21 @@ class fm_receiver(gr.top_block, Qt.QWidget):
 
         self._qtgui_waterfall_sink_x_0_win = sip.wrapinstance(self.qtgui_waterfall_sink_x_0.pyqwidget(), Qt.QWidget)
         self.top_grid_layout.addWidget(self._qtgui_waterfall_sink_x_0_win)
+        self.osmosdr_source_0 = osmosdr.source(
+            args="numchan=" + str(1) + " " + ""
+        )
+        self.osmosdr_source_0.set_time_unknown_pps(osmosdr.time_spec_t())
+        self.osmosdr_source_0.set_sample_rate(samp_rate)
+        self.osmosdr_source_0.set_center_freq(tuning, 0)
+        self.osmosdr_source_0.set_freq_corr(0, 0)
+        self.osmosdr_source_0.set_dc_offset_mode(0, 0)
+        self.osmosdr_source_0.set_iq_balance_mode(0, 0)
+        self.osmosdr_source_0.set_gain_mode(False, 0)
+        self.osmosdr_source_0.set_gain(10, 0)
+        self.osmosdr_source_0.set_if_gain(20, 0)
+        self.osmosdr_source_0.set_bb_gain(20, 0)
+        self.osmosdr_source_0.set_antenna('', 0)
+        self.osmosdr_source_0.set_bandwidth(0, 0)
         self.low_pass_filter_0 = filter.fir_filter_ccf(
             int(samp_rate/down_rate),
             firdes.low_pass(
@@ -162,9 +167,10 @@ class fm_receiver(gr.top_block, Qt.QWidget):
         self.connect((self.analog_wfm_rcv_0, 0), (self.rational_resampler_xxx_0, 0))
         self.connect((self.blocks_multiply_const_vxx_0, 0), (self.audio_sink_0, 0))
         self.connect((self.low_pass_filter_0, 0), (self.analog_wfm_rcv_0, 0))
+        self.connect((self.osmosdr_source_0, 0), (self.low_pass_filter_0, 0))
+        self.connect((self.osmosdr_source_0, 0), (self.qtgui_waterfall_sink_x_0, 0))
         self.connect((self.rational_resampler_xxx_0, 0), (self.blocks_multiply_const_vxx_0, 0))
-        self.connect((self.rtlsdr_source_0, 0), (self.low_pass_filter_0, 0))
-        self.connect((self.rtlsdr_source_0, 0), (self.qtgui_waterfall_sink_x_0, 0))
+
 
     def closeEvent(self, event):
         self.settings = Qt.QSettings("GNU Radio", "fm_receiver")
@@ -183,7 +189,7 @@ class fm_receiver(gr.top_block, Qt.QWidget):
 
     def set_tuning(self, tuning):
         self.tuning = tuning
-        self.rtlsdr_source_0.set_center_freq(self.tuning, 0)
+        self.osmosdr_source_0.set_center_freq(self.tuning, 0)
 
     def get_samp_rate(self):
         return self.samp_rate
@@ -191,14 +197,16 @@ class fm_receiver(gr.top_block, Qt.QWidget):
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
         self.low_pass_filter_0.set_taps(firdes.low_pass(2, self.samp_rate, int(200e3), 10000, firdes.WIN_KAISER, 6.76))
+        self.osmosdr_source_0.set_sample_rate(self.samp_rate)
         self.qtgui_waterfall_sink_x_0.set_frequency_range(0, self.samp_rate)
-        self.rtlsdr_source_0.set_sample_rate(self.samp_rate)
 
     def get_down_rate(self):
         return self.down_rate
 
     def set_down_rate(self, down_rate):
         self.down_rate = down_rate
+
+
 
 
 
@@ -210,7 +218,9 @@ def main(top_block_cls=fm_receiver, options=None):
     qapp = Qt.QApplication(sys.argv)
 
     tb = top_block_cls()
+
     tb.start()
+
     tb.show()
 
     def sig_handler(sig=None, frame=None):
@@ -226,9 +236,9 @@ def main(top_block_cls=fm_receiver, options=None):
     def quitting():
         tb.stop()
         tb.wait()
+
     qapp.aboutToQuit.connect(quitting)
     qapp.exec_()
-
 
 if __name__ == '__main__':
     main()
