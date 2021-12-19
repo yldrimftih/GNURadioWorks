@@ -191,7 +191,7 @@ blocks:
     ant8: ''
     ant9: ''
     args: '""'
-    bb_gain0: '40'
+    bb_gain0: '50'
     bb_gain1: '20'
     bb_gain10: '20'
     bb_gain11: '20'
@@ -296,7 +296,7 @@ blocks:
     corr7: '0'
     corr8: '0'
     corr9: '0'
-    freq0: 1031e5
+    freq0: 875e5
     freq1: 100e6
     freq10: 100e6
     freq11: 100e6
@@ -328,7 +328,7 @@ blocks:
     freq7: 100e6
     freq8: 100e6
     freq9: 100e6
-    gain0: '40'
+    gain0: '50'
     gain1: '10'
     gain10: '10'
     gain11: '10'
@@ -360,7 +360,7 @@ blocks:
     gain7: '10'
     gain8: '10'
     gain9: '10'
-    if_gain0: '40'
+    if_gain0: '50'
     if_gain1: '20'
     if_gain10: '20'
     if_gain11: '20'
@@ -411,7 +411,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1304, 174]
+    coordinate: [1305, 174]
     rotation: 0
     state: true
 - name: qtgui_sink_x_0
